@@ -1,0 +1,12 @@
+# Executables
+demo/demo
+demo
+
+# Libraries and Archives
+*.a
+*.o
+lib/*.a
+lib/*.o
+
+# OS generated files (macOS metadata)
+.DS_Store
