@@ -56,7 +56,7 @@ int main() {
         .target = "example.com",
         .q_type = DNS_A,              // Supported: DNS_A, DNS_NS, DNS_CNAME, DNS_SOA, DNS_MX, DNS_TXT, DNS_AAAA
         .dns_resolver = NULL,         // Set to an IP or Hostname string, or NULL to read /etc/resolv.conf
-        .edns_query_size = 0          // Set custom EDNS size if needed
+        .edns_query_size = 512        // Set custom EDNS size if needed ( max : 4096 )
     };
 
     // 2. Execute the lookup
