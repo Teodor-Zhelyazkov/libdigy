@@ -38,8 +38,6 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	printf("query_type %d\n", query_type);
-
 	DNSLookupQuery q = {
 		.target = argv[1],
 		.q_type = query_type,
