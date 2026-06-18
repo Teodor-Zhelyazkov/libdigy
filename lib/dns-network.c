@@ -39,7 +39,8 @@ int send_udp( uint8_t *buffer, int buffer_len, int buffer_size, int *bytes_sent,
 		// IPv4 Check if we have the socket created
 		if( socket_ipv4 == -1 )
 		{
-			printf("Can't create a socket descriptor");
+			// Debug error
+			debug_error("Can't create a IPv4 socket descriptor");
 			
 			dns_errno = DNS_ERR_SYSTEM;
 			return -1;
@@ -49,7 +50,8 @@ int send_udp( uint8_t *buffer, int buffer_len, int buffer_size, int *bytes_sent,
 
 		if( set_recv_opts_v4 == -1 )
 		{
-			printf("Can't set UDP options : %s \n", strerror(errno));
+			// Debug error
+			debug_error("Can't set UDP options : %s", strerror(errno));
 
 			dns_errno = DNS_ERR_SYSTEM;
 			close(socket_ipv4);
@@ -69,7 +71,8 @@ int send_udp( uint8_t *buffer, int buffer_len, int buffer_size, int *bytes_sent,
 			// Close ipv4 socket
 			if( r_ctx->has_ipv4 ) close (socket_ipv4);
 
-			printf("Can't create a socket descriptor");
+			// Debug error
+			debug_error("Can't create a IPv6 socket descriptor");
 			return -1;
 		}
 
@@ -82,10 +85,8 @@ int send_udp( uint8_t *buffer, int buffer_len, int buffer_size, int *bytes_sent,
 			// Close ipv4 socket
 			if( r_ctx->has_ipv4 ) close (socket_ipv4);
 
-			// printf("Can't set UDP options : %s \n", strerror(errno));
-
 			// Debug error
-			debug_error("Can't set UDP options : %s \n", strerror(errno));
+			debug_error("Can't set UDP options : %s", strerror(errno));
 
 			close(socket_ipv6);
 			return -1;
@@ -263,8 +264,6 @@ int send_udp( uint8_t *buffer, int buffer_len, int buffer_size, int *bytes_sent,
 		dns_errno = NO_ERROR;
 		return 1;
 	}
-
+	
 	return 0;
-
-	// return packet_received == TRUE ? 1 : 0;
 }

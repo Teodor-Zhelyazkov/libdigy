@@ -31,9 +31,10 @@ int get_dns_resolvers( DNSResolverContext *r_ctx )
     fptr = fopen("/etc/resolv.conf", "r");
 
     // Check if we opened successfully
-    if (fptr == NULL) {
-
-        printf("The file is not opened.");
+    if (fptr == NULL) 
+	{
+		// Debug error
+		debug_error("Can't open resolv.conf file");
 		// Return falsy state
 		return -1;
     }

@@ -48,12 +48,6 @@ int parse_dns_resource_records( DNSResourceRecord *rr_array, int rr_count, uint8
 			return -1;
 		}
 
-		// for( int k = 0; k < strlen((char *) rr_array[i].NAME); k++ )
-		// {
-		// 	// printf("CONVERTED -- %c \n", answer_domain[i]);
-		// 	printf("BYTE %d -- %02x (char: %c)\n", i, rr_array[i].NAME[k], rr_array[i].NAME[k]);
-		// }
-
 		// Bounds check for domain name
 		if( rr_buffer + adn_length > end_packet )
 		{

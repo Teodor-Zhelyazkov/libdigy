@@ -278,7 +278,6 @@ DNSLookupResult* run_dns_lookup( DNSLookupQuery query, DNSResolverContext *r_ctx
 			// IF ever OPT RR starts to use RDATA : We need to celar it here before the REALLOC
 			//  free -> "result->additionals[i].RDATA"
 
-
 			// Read all elements from this one till the end
 			for( int k = i; k < additional_count - 1; k++ )
 			{
@@ -313,14 +312,6 @@ DNSLookupResult* run_dns_lookup( DNSLookupQuery query, DNSResolverContext *r_ctx
 			break;
 		}
 	}
-	
-	printf("answer_count %d\n", answer_count);
-	printf("authority_count %d\n", authority_count);
-	printf("additional_count %d\n", additional_count);
-	printf("additional_count_2 %d\n", result->additional_count);
-
-	printf("bytes send %d \n", bytes_sent);
-	printf("bytes received %d \n", bytes_received);
 
 	return result;
 }
