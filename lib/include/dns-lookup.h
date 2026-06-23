@@ -21,6 +21,13 @@
         https://datatracker.ietf.org/doc/html/rfc2782
 
         PTR 
+        format & ipv4
+        https://datatracker.ietf.org/doc/html/rfc1035
+        ipv6 
+        https://datatracker.ietf.org/doc/html/rfc3596
+
+        CAA
+        https://datatracker.ietf.org/doc/html/rfc8659
 
 
 	### Message

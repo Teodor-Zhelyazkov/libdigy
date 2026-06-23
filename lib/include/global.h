@@ -14,7 +14,6 @@
 // define opt edns rr type integer
 #define OPT_EDNS_RR_TYPE 41
 
-
 #if defined __STDC_VERSION__
     #if (__STDC_VERSION__ == 202000) || (__STDC_VERSION__ >= 202311L)
         // Temporary C2x placeholder or official C23 standard

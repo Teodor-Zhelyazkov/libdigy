@@ -6,5 +6,6 @@ uint16_t get_bits_16( uint16_t number, int bit_position, int width );
 void set_bits_16( uint16_t *bits, int value, int bit_position, int width );
 int is_ipv4( char *ip );
 int is_ipv6( char *ip );
+int ipv6_to_str_expand(char *src_ip, char *dest_ip);
 void debug_log ( const char * format, ... );
 void debug_error ( const char * format, ... );

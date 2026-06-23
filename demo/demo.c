@@ -29,6 +29,7 @@ int main(int argc, char* argv[])
 	}
 	
 	printf("SIZE ARGV %ld\n", strlen(argv[1]));
+	printf("TYPE %s\n", argv[2]);
 	
 	int query_type = resolve_query_type_to_network(argv[2]);
 
@@ -40,8 +41,8 @@ int main(int argc, char* argv[])
 
 	DNSLookupQuery q = {
 		.target = argv[1],
-		.q_type = query_type,
-		.dns_resolver = "8.8.8.8",
+		.q_type = query_type, 
+		// .dns_resolver = "8.8.8.8",
         // .edns_query_size = 512,
         // .dns_resolver = "192.36.148.17",
 		// .dns_resolver = "ns4.google.com",
@@ -131,6 +132,14 @@ static void print_rr(DNSResourceRecord *rr_array, int rr_count)
                 break;
             }
 
+            case DNS_PTR:
+            {
+                RR_PTR_RDATA *data = (RR_PTR_RDATA *)rr->RDATA;
+
+                printf("PTRDNAME : %s\n", data->PTRDNAME);
+                break;
+            }
+
             case DNS_TXT:
             {
                 RR_TXT_RDATA *data = (RR_TXT_RDATA *)rr->RDATA;
@@ -190,6 +199,14 @@ int resolve_query_type_to_network( const char *qtype )
 	else if( strcmp(qtype, "AAAA") == 0 || strcmp(qtype, "aaaa") == 0  )
 	{
 		return DNS_AAAA;
+	}
+    else if( strcmp(qtype, "PTR") == 0 || strcmp(qtype, "ptr") == 0  )
+	{
+		return DNS_PTR;
+	}
+    else if( strcmp(qtype, "ANY") == 0 || strcmp(qtype, "any") == 0  )
+	{
+		return DNS_ANY;
 	}
 	else 
 	{

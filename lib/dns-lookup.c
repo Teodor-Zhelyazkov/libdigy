@@ -54,7 +54,7 @@ DNSLookupResult* run_dns_lookup( DNSLookupQuery query, DNSResolverContext *r_ctx
 
 	// Init packet buffer 
 	uint8_t buffer[DNS_BUFFER_SIZE];
-	// init domain name 
+	// Init domain name 
 	uint8_t *domain_name;
 	
 	// Init header
@@ -75,8 +75,56 @@ DNSLookupResult* run_dns_lookup( DNSLookupQuery query, DNSResolverContext *r_ctx
 	// Assigning domain_name pointer after the dns_header bytes DIRECTLY into the buffer
 	domain_name  = ( uint8_t * )&buffer[sizeof( DNSHeader )];
 
-	// Convert the domain name and get the lenght 
-	int domain_name_length = convert_domain_to_dns_format(query.target, domain_name);
+	// Init the domain name length
+	int domain_name_length = 0;
+
+	switch( query.q_type )
+	{
+		case DNS_PTR : 
+		{	
+			// example of long IPv6 : b.a.2.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.1.0.0.2.ip6.arpa
+			char ptr_target[73];
+			int ptr_target_len = convert_ip_to_dns_ptr_format(query.target, &ptr_target[0]);
+			
+			if( ptr_target_len <= 0 )
+			{
+				// Debug error
+				debug_error("Failed to convert the ip to dns format for input : %s\n", query.target);
+
+				if( ptr_target_len == 0 )
+					dns_errno = DNS_ERR_QUERY_INPUT;
+				else 
+					dns_errno = DNS_ERR_SYSTEM;
+
+				return NULL;
+			}
+			// Convert the ip PRT to dns format
+			domain_name_length = convert_domain_to_dns_format(&ptr_target[0], domain_name);
+
+			break;
+		}
+		default :
+		{
+			// Convert the domain name and get the lenght
+			domain_name_length = convert_domain_to_dns_format(query.target, domain_name);
+		
+			break;
+		}
+	}
+
+	// Convert the domain name and get the lenght
+	// int domain_name_length = convert_domain_to_dns_format(qtarget, domain_name);
+	if( domain_name_length <= 0 )
+	{
+		// Debug error
+		debug_error("Failed to convert domain name to dns format for input : %s\n", query.target);
+
+		dns_errno = DNS_ERR_QUERY_INPUT;
+		return NULL;
+	}
+
+	// return NULL;
+
 	// Assigning dns_question pointer after header and domain bytes 
 	dns_question = ( DNSQuestionFields * )&buffer[ sizeof( DNSHeader ) + domain_name_length ];
 			
@@ -145,7 +193,7 @@ DNSLookupResult* run_dns_lookup( DNSLookupQuery query, DNSResolverContext *r_ctx
 	}
 
 	// Debug log
-	debug_log("Initializing the result struct \n");
+	debug_log("Initializing the result struct");
 
 	// init message section counts
 	int answer_count 	 = ntohs( res_dns_header->ANCOUNT );
@@ -214,7 +262,7 @@ DNSLookupResult* run_dns_lookup( DNSLookupQuery query, DNSResolverContext *r_ctx
 	}
 
 	// Debug log
-	debug_log("Parsing the result \n");
+	debug_log("Parsing the result");
 	
 	// Get answer RR
 	uint8_t *answer  = &buffer[ sizeof(DNSHeader) + domain_name_length + sizeof(DNSQuestionFields) ];

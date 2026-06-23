@@ -54,7 +54,7 @@ int main() {
     // 1. Configure the query
     DNSLookupQuery query = {
         .target = "example.com",
-        .q_type = DNS_A,              // Supported: DNS_A, DNS_NS, DNS_CNAME, DNS_SOA, DNS_MX, DNS_TXT, DNS_AAAA
+        .q_type = DNS_A,              // Supported: DNS_A, DNS_NS, DNS_CNAME, DNS_SOA, DNS_MX, DNS_TXT, DNS_AAAA, DNS_PTR, DNS_ANY
         .dns_resolver = NULL,         // Set to an IP or Hostname string, or NULL to read /etc/resolv.conf
         .edns_query_size = 512        // Set custom EDNS size if needed ( max : 4096 )
     };
@@ -189,6 +189,14 @@ if (record->TYPE == DNS_AAAA) {
 }
 ```
 
+### Reading an `PTR` (IPv6) Record:
+```c
+if (record->TYPE == DNS_PTR) {
+    RR_PTR_RDATA *data = (RR_PTR_RDATA *)record->RDATA;
+    printf("Domain name: %s\n", (char *)data->PTRDNAME);
+}
+```
+
 ### Handling Unsupported/Unknown Records:
 If the DNS server returns a resource record type that is not natively supported by the library, the `RDATA` pointer is automatically mapped to `RR_UNSUPPORTED_RDATA`. This structure provides direct access to the raw binary payload returned by the server:
 
@@ -211,12 +219,13 @@ If `dns_lookup()` returns `NULL`, the global thread-local variable `dns_errno` i
 | `NO_ERROR` | `0` | No error occurred. |
 | `DNS_ERR_SYSTEM` | `-1` | General system or environment failure. **(Check standard `errno` for details)** |
 | `DNS_ERR_RESOLV_CONF` | `-2` | Failed to open or parse `/etc/resolv.conf`. |
-| `DNS_ERR_SEND` | `-3` | Failed to send network packet via socket. |
-| `DNS_ERR_RECV` | `-4` | Failed to receive network data. |
-| `DNS_ERR_TIMEOUT` | `-5` | Network timeout waiting for resolver response. |
-| `DNS_ERR_PACKET_SIZE_EXCEEDED` | `-6` | Received packet size exceeds internal buffer boundaries. |
-| `DNS_ERR_PACKET_MALFORMED` | `-7` | Server returned a corrupted or invalid DNS payload. |
-| `DNS_ERR_RESOLVER_INPUT` | `-8` | The provided custom resolver string is invalid. |
+| `DNS_ERR_QUERY_INPUT` | `-3` | Invalid input. |
+| `DNS_ERR_SEND` | `-4` | Failed to send network packet via socket. |
+| `DNS_ERR_RECV` | `-5` | Failed to receive network data. |
+| `DNS_ERR_TIMEOUT` | `-6` | Network timeout waiting for resolver response. |
+| `DNS_ERR_PACKET_SIZE_EXCEEDED` | `-7` | Received packet size exceeds internal buffer boundaries. |
+| `DNS_ERR_PACKET_MALFORMED` | `-8` | Server returned a corrupted or invalid DNS payload. |
+| `DNS_ERR_RESOLVER_INPUT` | `-9` | The provided custom resolver string is invalid. |
 
 ### Handling System Errors
 When `dns_errno` is set to `DNS_ERR_SYSTEM`, the library encountered a failure within a native POSIX/Linux system call (such as `socket()`, `malloc()`, or `open()`). In this case, the standard Linux `errno` variable (from `<errno.h>`) remains untouched, allowing you to debug the exact OS-level failure using `perror()` or `strerror()`:

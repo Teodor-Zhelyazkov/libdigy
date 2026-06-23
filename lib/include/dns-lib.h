@@ -22,9 +22,11 @@ typedef enum {
     DNS_NS    = 2,
     DNS_CNAME = 5,
     DNS_SOA   = 6,
+	DNS_PTR   = 12,
     DNS_MX    = 15,
     DNS_TXT   = 16,
     DNS_AAAA  = 28,
+	DNS_ANY   = 255
 } DNSType;
 
 typedef enum {
@@ -37,12 +39,13 @@ typedef enum {
     NO_ERROR            			=  0,
     DNS_ERR_SYSTEM      			= -1,
     DNS_ERR_RESOLV_CONF 			= -2,
-	DNS_ERR_SEND        			= -3,  
-    DNS_ERR_RECV        			= -4,  
-    DNS_ERR_TIMEOUT     			= -5,
-	DNS_ERR_PACKET_SIZE_EXCEEDED	= -6,
-    DNS_ERR_PACKET_MALFORMED 		= -7,
-    DNS_ERR_RESOLVER_INPUT 			= -8,
+	DNS_ERR_QUERY_INPUT				= -3,
+	DNS_ERR_SEND        			= -4,  
+    DNS_ERR_RECV        			= -5,  
+    DNS_ERR_TIMEOUT     			= -6,
+	DNS_ERR_PACKET_SIZE_EXCEEDED	= -7,
+    DNS_ERR_PACKET_MALFORMED 		= -8,
+    DNS_ERR_RESOLVER_INPUT 			= -9,
 
     // DNS_ERR_MALFORMED   = -4,
 } DNSError;
@@ -97,6 +100,9 @@ typedef struct {
 	uint8_t ADDRESS[INET6_ADDRSTRLEN]; 
 } RR_AAAA_RDATA;
 
+typedef struct {
+	uint8_t PTRDNAME[DOMAIN_NAME_BUFF_SIZE]; 
+} RR_PTR_RDATA;
 
 typedef struct {
 	uint8_t *DATA;

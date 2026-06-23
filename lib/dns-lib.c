@@ -151,6 +151,7 @@ void free_rr_rdata( DNSResourceRecord *rr )
         case DNS_MX:
         case DNS_TXT:
         case DNS_SOA:
+        case DNS_PTR:
             free(rr->RDATA);
             break;
 

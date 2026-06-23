@@ -1,6 +1,6 @@
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
 // #include "include/dns-lookup.h"
 #include "include/dns-parser.h"
 #include "include/global.h"
@@ -284,6 +284,43 @@ int parse_dns_resource_records( DNSResourceRecord *rr_array, int rr_count, uint8
 				{
 					// Debug error
 					debug_error("Failed to convert DNS_MX - EXCHANGE to human readable format.");
+
+					dns_errno = DNS_ERR_PACKET_MALFORMED;
+					return -1;
+				}
+
+				break;
+			}
+			case DNS_PTR:
+			{
+				// Allocate void pointer memory
+				rr_array[i].RDATA = malloc( sizeof(RR_PTR_RDATA) );
+				if( rr_array[i].RDATA == NULL )
+				{
+					dns_errno = DNS_ERR_SYSTEM;
+					return -1;
+				}
+
+				RR_PTR_RDATA * pData_PTR = (RR_PTR_RDATA *) rr_array[i].RDATA;
+
+				// Read the domain
+				int ptr_length = read_dns_domain_name( rr_buffer, &buffer[0], &pData_PTR->PTRDNAME[0], bytes_received );
+				// Check the read 
+				if( ptr_length == -1 )
+				{
+					// Debug error
+					debug_error("Failed to read DNS_PTRDNAME - PTRDNAME from the buffer.");
+
+					dns_errno = DNS_ERR_PACKET_MALFORMED;
+					return -1;
+				}
+				// Convert the domain
+				int ptr_convert_length = convert_dns_format_to_domain(&pData_PTR->PTRDNAME[0], &pData_PTR->PTRDNAME[0]);
+				// Check the convert 
+				if( ptr_convert_length == -1 )
+				{
+					// Debug error
+					debug_error("Failed to convert DNS_PTRDNAME - PTRDNAME to human readable format.");
 
 					dns_errno = DNS_ERR_PACKET_MALFORMED;
 					return -1;
@@ -590,6 +627,7 @@ int read_dns_domain_name( uint8_t *reader, uint8_t *buffer, uint8_t *dns_domain,
 	return answer_length;
 }
 
+// Save to use "src_name" and "dest_name" to be the same pointer 
 int convert_dns_format_to_domain( uint8_t *src_name, uint8_t *dest_name )
 {
 	// example :  6google3com -> google.com
@@ -646,13 +684,20 @@ int convert_dns_format_to_domain( uint8_t *src_name, uint8_t *dest_name )
 
 int convert_domain_to_dns_format( char *src_name, uint8_t *dest_name )
 {
-	int pos    = 0;
-   	int start  = 0;
-	int length = 0;
+	int pos     = 0;
+   	int start   = 0;
+	int length  = 0;
+	size_t src_len = strlen(src_name);
+
+	if( src_len == 0 )
+	{
+		return -1;
+	}
+
 	// Start with null char
 	dest_name[pos] = '\0';
 
-	for( size_t i = 0; i <= strlen(src_name); i++ )
+	for( size_t i = 0; i <= src_len; i++ )
 	{
 		if( src_name[i] == '.' || src_name[i] == '\0' )
 		{
@@ -675,6 +720,94 @@ int convert_domain_to_dns_format( char *src_name, uint8_t *dest_name )
 	}		
 	// Assign the null character
 	dest_name[pos++] = '\0';
+
 	// Return the new string length
 	return pos;
 }
+
+int convert_ip_to_dns_ptr_format( char *src_ip, char *dest_name )
+{
+	if( is_ipv4( src_ip ) )
+	{
+		// Init ipv4 parts
+		int n1, n2, n3, n4;
+
+		// Parse the 4 ip numbers
+        if (sscanf(src_ip, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) == 4)
+        {
+            // Print them in reverse order into dest_name
+            // NOTE sprintf adds the null terminator '\0' at the end
+            sprintf(dest_name, "%d.%d.%d.%d.in-addr.arpa", n4, n3, n2, n1);
+            // get the length
+            int ipv4_len = strlen(dest_name) + 1;
+			// return length
+			return ipv4_len;
+        }
+        else
+        {
+            return 0;
+        }
+
+	}
+	else if( is_ipv6( src_ip ) )
+	{
+		/*
+			Expand the double colon if present. For 2a00:1450:4017:812::200e we get 2a00:1450:4017:0812:0000:0000:0000:200e
+			Insert DOT before each character : .2.a.0.0.1.4.5.0.4.0.1.7.0.8.1.2.0.0.0.0.0.0.0.0.0.0.0.0.2.0.0.e
+			Reverse the characters: e.0.0.2.0.0.0.0.0.0.0.0.0.0.0.0.2.1.8.0.7.1.0.4.0.5.4.1.0.0.a.2.
+			Add "ip6.arpa" to finish the lookup name: e.0.0.2.0.0.0.0.0.0.0.0.0.0.0.0.2.1.8.0.7.1.0.4.0.5.4.1.0.0.a.2.ip6.arpa
+		*/
+
+		// Expand IPv6 in format : 2a00:1450:4017:0812:0000:0000:0000:200e
+		int result = ipv6_to_str_expand(src_ip, dest_name);
+		// Check for errors 
+		if( result <= 0 )
+			return -1;
+
+		// Get the original length
+		int ip_len = strlen(dest_name);
+		// Define the new len & we do it minus 7 times the char ':'
+		// We are doing * 2 because each character must be folowed by .
+		int new_len 	= ( ip_len - 7 ) *  2;
+		// Define the new len pos
+		int new_len_pos = new_len - 1;
+		// Add the null terminator at the "new_len" position
+		dest_name[new_len] = '\0'; 
+
+		// Remove ':' and also add '.' after each character
+		// Here we are reading the destination from the end and assign the new chars at the new computed end : "new_len_pos"
+		for( int i = ip_len - 1; i >= 0; i-- )
+		{
+			// If we are not currently on the ':' char
+			if( dest_name[i] == ':' )
+				continue;
+			// Append the characters
+			dest_name[new_len_pos--] = dest_name[i];
+			dest_name[new_len_pos--] =  '.';
+		}
+
+		// Reverse the string - ip address 
+		int dest_pos = 0;
+		for( int i = new_len - 1; i >= 0; i-- )
+		{
+			if( dest_pos >= i )
+				break;
+
+			char tmp_left = dest_name[dest_pos];
+			dest_name[dest_pos++] = dest_name[i];
+			dest_name[i] = tmp_left;
+		}
+
+		// Append  "ip6.arpa" at the end
+		strcat(dest_name, "ip6.arpa");
+		// Get the len
+		int ipv6_len = strlen(dest_name) + 1;
+
+		return ipv6_len;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
