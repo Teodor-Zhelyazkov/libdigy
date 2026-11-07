@@ -38,7 +38,7 @@ DNSLookupResult* dns_lookup( DNSLookupQuery query )
 	}
 
 	// Force resolv.conf reads on time interval 
-	if( time(NULL) - last_resolvers_read  >= 5 )
+	if( time(NULL) - last_resolvers_read  >= RESOLV_READ_INTERVAL )
 	{
 		// Debug log
 		debug_log("FORCE read resolv.conf after time interval : %d seconds", RESOLV_READ_INTERVAL);

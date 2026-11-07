@@ -147,7 +147,7 @@ DNSLookupResult* run_dns_lookup( DNSLookupQuery query, DNSResolverContext *r_ctx
 	DNSOPTResourseRecordFields *opt_rr = ( DNSOPTResourseRecordFields * )&buffer[ sizeof( DNSHeader ) + domain_name_length + sizeof(DNSQuestionFields) + 1 ];
 
 	// OPT (41)
-	opt_rr->TYPE = htons(41);
+	opt_rr->TYPE = htons(OPT_EDNS_RR_TYPE);
 	// requestor's UDP payload size 
 	opt_rr->CLASS = htons(query.edns_query_size);
 	// opt_rr->CLASS = htons(512);
